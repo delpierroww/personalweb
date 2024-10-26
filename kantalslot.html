@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cepalSlot Machine</title>
+    <style>
+        body {
+            font-family: 'Trajan Pro', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: #f1c40f;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background-color: rgba(41, 128, 185, 0.8);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 0;
+        }
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            gap: 20px;
+        }
+        .slot-machine {
+            background-color: rgba(41, 128, 185, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+            text-align: center;
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+        }
+        .reels {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .reel {
+            width: 80px;
+            height: 80px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #balance, #currentBet {
+            font-size: 18px;
+            color: #ecf0f1;
+            background-color: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #spinButton, #topUpButton {
+            background-color: #e67e22;
+            color: #fff;
+            border: none;
+            padding: 15px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Trajan Pro', 'Times New Roman', serif;
+        }
+        #spinButton:hover, #topUpButton:hover {
+            background-color: #d35400;
+            transform: scale(1.05);
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #ecf0f1;
+            min-height: 30px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            background-color: #34495e;
+            margin: 15% auto;
+            padding: 20px;
+            border: 2px solid #f1c40f;
+            width: 300px;
+            border-radius: 10px;
+        }
+        .close {
+            color: #f1c40f;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #e67e22;
+        }
+        @keyframes spin {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        input[type="number"] {
+            background-color: #ecf0f1;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .bet-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .bet-option {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .bet-option:hover {
+            background-color: #2980b9;
+        }
+        .stats-panel {
+            background-color: rgba(41, 128, 185, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+        .stats-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .jackpot-panel {
+            background-color: rgba(231, 76, 60, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+            text-align: center;
+            margin-top: 20px;
+        }
+        .jackpot-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .jackpot-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>cepal mechine</h1>
+    </div>
+    <div class="main-container">
+        <div class="slot-machine">
+            <div class="reels">
+                <div class="reel" id="reel1">⚡</div>
+                <div class="reel" id="reel2">🦅</div>
+                <div class="reel" id="reel3">🏛️</div>
+            </div>
+            <div class="bet-menu">
+                <button class="bet-option" data-bet="10000">10K</button>
+                <button class="bet-option" data-bet="50000">50K</button>
+                <button class="bet-option" data-bet="100000">100K</button>
+                <button class="bet-option" data-bet="500000">500K</button>
+            </div>
+            <div class="controls">
+                <div id="balance">Saldo: Rp0</div>
+                <div id="currentBet">Taruhan: Rp10.000</div>
+                <button id="spinButton">PUTAR</button>
+                
+                <button id="topUpButton">TOP UP</button>
+            </div>
+            <div id="result"></div>
+        </div>
+        <div class="stats-panel">
+            <div class="stats-title">Statistik Permainan</div>
+            <div class="stats-item">
+                <span>Total Putaran:</span>
+                <span id="totalSpins">0</span>
+            </div>
+            <div class="stats-item">
+                <span>Total Kemenangan:</span>
+                <span id="totalWins">Rp0</span>
+            </div>
+            <div class="stats-item">
+                <span>Total Kekalahan:</span>
+                <span id="totalLosses">Rp0</span>
+            </div>
+            <div class="stats-item">
+                <span>Kemenangan Terbesar:</span>
+                <span id="biggestWin">Rp0</span>
+            </div>
+            <div class="jackpot-panel">
+                <div class="jackpot-title">JACKPOT</div>
+                <div class="jackpot-amount" id="jackpotAmount">Rp1.000.000</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="topUpModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Top Up Saldo</h2>
+            <input type="number" id="topUpAmount" min="10000" step="10000" value="100000">
+            <button id="confirmTopUp">Konfirmasi</button>
+        </div>
+    </div>
+
+    <script>
+        const reel1 = document.getElementById('reel1');
+        const reel2 = document.getElementById('reel2');
+        const reel3 = document.getElementById('reel3');
+        const spinButton = document.getElementById('spinButton');
+        const balanceDisplay = document.getElementById('balance');
+        const currentBetDisplay = document.getElementById('currentBet');
+        const resultDisplay = document.getElementById('result');
+        const topUpButton = document.getElementById('topUpButton');
+        const topUpModal = document.getElementById('topUpModal');
+        const closeModal = document.getElementsByClassName('close')[0];
+        const confirmTopUp = document.getElementById('confirmTopUp');
+        const topUpAmount = document.getElementById('topUpAmount');
+        const betOptions = document.querySelectorAll('.bet-option');
+        const totalSpinsDisplay = document.getElementById('totalSpins');
+        const totalWinsDisplay = document.getElementById('totalWins');
+        const totalLossesDisplay = document.getElementById('totalLosses');
+        const biggestWinDisplay = document.getElementById('biggestWin');
+        const jackpotAmountDisplay = document.getElementById('jackpotAmount');
+
+        const symbols = ['⚡', '🦅', '🏛️', '🏺', '🎭', '🏆'];
+        let balance = 0;
+        let currentBet = 10000;
+        let totalSpins = 0;
+        let totalWins = 0;
+        let totalLosses = 0;
+        let biggestWin = 0;
+        let jackpotAmount = 1000000;
+
+        spinButton.addEventListener('click', spin);
+        topUpButton.addEventListener('click', () => topUpModal.style.display = 'block');
+        closeModal.addEventListener('click', () => topUpModal.style.display = 'none');
+        confirmTopUp.addEventListener('click', topUp);
+
+        betOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                currentBet = parseInt(option.dataset.bet);
+                updateCurrentBetDisplay();
+            });
+        });
+
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+        }
+
+        function spin() {
+            if (currentBet > balance) {
+                alert('Saldo tidak cukup! Silakan top up terlebih dahulu.');
+                return;
+            }
+
+            balance -= currentBet;
+            updateBalance();
+            totalSpins++;
+            updateTotalSpins();
+
+            spinButton.disabled = true;
+            resultDisplay.textContent = '';
+
+            const reels = [reel1, reel2, reel3];
+            const results = [];
+
+            reels.forEach((reel, index) => {
+                reel.style.animation = 'spin 0.5s linear infinite';
+                setTimeout(() => {
+                    reel.style.animation = 'none';
+                    const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    reel.textContent = randomSymbol;
+                    results.push(randomSymbol);
+
+                    if (index === 2) {
+                        checkWin(results);
+                    }
+                }, (index + 1) * 1000);
+            });
+        }
+
+        function checkWin(results) {
+            let winAmount = 0;
+            if (results[0] === results[1] && results[1] === results[2]) {
+                if (results[0] === '🏆') {
+                    winAmount = jackpotAmount;
+                    resultDisplay.textContent = `JACKPOT! Anda menang ${formatRupiah(winAmount)}!`;
+                } else {
+                    winAmount = currentBet * 10;
+                    resultDisplay.textContent = `Anda menang ${formatRupiah(winAmount)}!`;
+                }
+            } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
+                winAmount = currentBet * 2;
+                resultDisplay.textContent = `Anda menang ${formatRupiah(winAmount)}!`;
+            } else {
+                resultDisplay.textContent = 'Coba lagi!';
+                totalLosses += currentBet;
+                updateTotalLosses();
+            }
+
+            if (winAmount > 0) {
+                balance += winAmount;
+                totalWins += winAmount;
+                updateTotalWins();
+                if (winAmount > biggestWin) {
+                    biggestWin = winAmount;
+                    updateBiggestWin();
+                }
+            }
+
+            updateBalance();
+            spinButton.disabled = false;
+            updateJackpot();
+        }
+
+        function updateBalance() {
+            balanceDisplay.textContent = `Saldo: ${formatRupiah(balance)}`;
+        }
+
+        function updateCurrentBetDisplay() {
+            currentBetDisplay.textContent = `Taruhan: ${formatRupiah(currentBet)}`;
+        }
+
+        function updateTotalSpins() {
+            totalSpinsDisplay.textContent = totalSpins;
+        }
+
+        function updateTotalWins() {
+            totalWinsDisplay.textContent = formatRupiah(totalWins);
+        }
+
+        function updateTotalLosses() {
+            totalLossesDisplay.textContent = formatRupiah(totalLosses);
+        }
+
+        function updateBiggestWin() {
+            biggestWinDisplay.textContent = formatRupiah(biggestWin);
+        }
+
+        function updateJackpot() {
+            jackpotAmount += Math.floor(currentBet * 0.1);
+            jackpotAmountDisplay.textContent = formatRupiah(jackpotAmount);
+        }
+
+        function topUp() {
+            const amount = parseInt(topUpAmount.value);
+            balance += amount;
+            updateBalance();
+            topUpModal.style.display = 'none';
+            alert(`Berhasil top up ${formatRupiah(amount)}`);
+        }
+
+        updateBalance();
+        updateCurrentBetDisplay();
+        updateTotalSpins();
+        updateTotalWins();
+        updateTotalLosses();
+        updateBiggestWin();
+        updateJackpot();
+    </script>
+</body>
+</html>
+<style>
+    /* ... (previous styles remain unchanged) ... */
+
+    #autoSpinOptions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    #autoSpinCount {
+        width: 60px;
+        padding: 5px;
+        margin-right: 10px;
+        border-radius: 5px;
+        border: 2px solid #FFD700;
+        background-color: #000000;
+        color: #FFD700;
+        text-align: center;
+    }
+
+    #autoSpinButton {
+        background-color: #B8860B;
+        color: #000000;
+        border: none;
+        padding: 8px 15px;
+        font-size: 1em;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #autoSpinButton:hover {
+        background-color: #FFD700;
+        transform: scale(1.05);
+    }
+
+    #autoSpinButton.active {
+        background-color: #FF4500;
+        color: #FFFFFF;
+    }
+</style>
+
+<script>
+    // Add this after the existing variable declarations
+    let isAutoSpinning = false;
+    let autoSpinCount = 0;
+    
+    // Create auto spin elements
+    const autoSpinOptions = document.createElement('div');
+    autoSpinOptions.id = 'autoSpinOptions';
+    
+    const autoSpinInput = document.createElement('input');
+    autoSpinInput.type = 'number';
+    autoSpinInput.id = 'autoSpinCount';
+    autoSpinInput.min = '1';
+    autoSpinInput.value = '10';
+    
+    const autoSpinButton = document.createElement('button');
+    autoSpinButton.id = 'autoSpinButton';
+    autoSpinButton.textContent = 'AUTO SPIN';
+    
+    autoSpinOptions.appendChild(autoSpinInput);
+    autoSpinOptions.appendChild(autoSpinButton);
+    
+    // Insert the auto spin options after the spin button
+    spinButton.parentNode.insertBefore(autoSpinOptions, spinButton.nextSibling);
+
+    // Add event listener for auto spin button
+    autoSpinButton.addEventListener('click', toggleAutoSpin);
+
+    function toggleAutoSpin() {
+        if (!isAutoSpinning) {
+            autoSpinCount = parseInt(autoSpinInput.value);
+            if (isNaN(autoSpinCount) || autoSpinCount < 1) {
+                alert('Please enter a valid number of spins.');
+                return;
+            }
+            isAutoSpinning = true;
+            autoSpinButton.textContent = 'STOP AUTO';
+            autoSpinButton.classList.add('active');
+            autoSpin();
+        } else {
+            isAutoSpinning = false;
+            autoSpinButton.textContent = 'AUTO SPIN';
+            autoSpinButton.classList.remove('active');
+        }
+    }
+
+    function autoSpin() {
+        if (isAutoSpinning && autoSpinCount > 0) {
+            spin();
+            autoSpinCount--;
+            autoSpinInput.value = autoSpinCount;
+            setTimeout(autoSpin, 2000); // Adjust the delay between spins as needed
+        } else if (autoSpinCount === 0) {
+            isAutoSpinning = false;
+            autoSpinButton.textContent = 'AUTO SPIN';
+            autoSpinButton.classList.remove('active');
+        }
+    }
+
+    // Modify the existing spin function
+    function spin() {
+        if (currentBet > balance) {
+            alert('Saldo tidak cukup! Silakan top up terlebih dahulu.');
+            isAutoSpinning = false;
+            autoSpinButton.textContent = 'AUTO SPIN';
+            autoSpinButton.classList.remove('active');
+            return;
+        }
+
+        // ... (rest of the spin function remains the same)
+    }
+</script>
+<script>
+    // Add new bet options
+    const additionalBets = [
+        { value: 1000000, label: '1M' },
+        { value: 5000000, label: '5M' },
+        { value: 10000000, label: '10M' }
+    ];
+    // Add auto-spin functionality
+    const autoSpinInterval = 100; // Interval between spins in milliseconds
+    let autoSpinTimer;
+
+    function startAutoSpin() {
+        if (!autoSpinTimer) {
+            autoSpinTimer = setInterval(() => {
+                if (balance >= currentBet) {
+                    spin();
+                } else {
+                    stopAutoSpin();
+                    alert('Saldo tidak cukup untuk melanjutkan auto-spin!');
+                }
+            }, autoSpinInterval);
+            spinButton.textContent = 'STOP AUTO';
+            spinButton.classList.add('auto-spinning');
+        } else {
+            stopAutoSpin();
+        }
+    }
+
+    function stopAutoSpin() {
+        clearInterval(autoSpinTimer);
+        autoSpinTimer = null;
+        spinButton.textContent = 'PUTAR';
+        spinButton.classList.remove('auto-spinning');
+    }
+
+    // Modify spin button to toggle auto-spin
+    spinButton.addEventListener('click', () => {
+        if (autoSpinTimer) {
+            stopAutoSpin();
+        } else {
+            startAutoSpin();
+        }
+    });
+
+    // Stop auto-spin if balance is insufficient
+    function updateBalance() {
+        balanceDisplay.textContent = `Saldo: ${formatRupiah(balance)}`;
+        if (balance < currentBet && autoSpinTimer) {
+            stopAutoSpin();
+        }
+    }
+
+    // Function to create new bet option buttons
+    function createBetOption(bet) {
+        const button = document.createElement('button');
+        button.className = 'bet-option';
+        button.dataset.bet = bet.value;
+        button.textContent = bet.label;
+        button.addEventListener('click', () => {
+            currentBet = parseInt(button.dataset.bet);
+            updateCurrentBetDisplay();
+            if (!isAutoSpinning) {
+                isAutoSpinning = true;
+                autoSpinButton.textContent = 'STOP AUTO';
+                autoSpinButton.classList.add('active');
+                autoSpinCount = parseInt(autoSpinInput.value);
+                autoSpin();
+            } else {
+                isAutoSpinning = false;
+                autoSpinButton.textContent = 'AUTO SPIN';
+                autoSpinButton.classList.remove('active');
+            }
+        });
+        return button;
+    }
+
+    // Get the bet menu
+    const betMenu = document.querySelector('.bet-menu');
+
+    // Add new bet options to the bet menu
+    additionalBets.forEach(bet => {
+        const newBetOption = createBetOption(bet);
+        betMenu.appendChild(newBetOption);
+        
+        // Add event listener for the new bet option
+        newBetOption.addEventListener('click', () => {
+            currentBet = parseInt(newBetOption.dataset.bet);
+            updateCurrentBetDisplay();
+        });
+    });
+
+    // Update the updateCurrentBetDisplay function to handle larger numbers
+    function updateCurrentBetDisplay() {
+        currentBetDisplay.textContent = `Taruhan: ${formatRupiah(currentBet)}`;
+    }
+</script>
